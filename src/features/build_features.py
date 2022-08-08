@@ -52,7 +52,7 @@ def transform(input_file: str, binary=False) -> None: # typehints
         df[col_name] = df[col_name].replace({"t": 1, "f": 0}).astype(int)
 
     # Converting numeric columns
-    for col_name in df.columns:
+    for col_name in df.columns[:len(df.columns)-1]:
         df[col_name] = df[col_name].apply(pd.to_numeric, errors='coerce')
 
     # Saving cleaned df

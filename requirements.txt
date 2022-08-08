@@ -1,7 +1,7 @@
-joblib==0.14.1
-feather-format==0.4.1
-matplotlib~=3.2.2
-pandas~=0.25.3
-numpy~=1.18.0
-toml==0.10.1
-requests~=2.22.0
+scikit-learn
+joblib
+feather-format
+scipy
+matplotlib
+pandas
+numpy
