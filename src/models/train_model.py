@@ -7,21 +7,17 @@
 
 from sklearn.neighbors import KNeighborsClassifier
 from joblib import dump
-import datetime
+import datetime import datetime
 
-def get_model(df):
+def get_model(df: str):
 
-    X_train = df.iloc[:, :-1]
-    Y_train = df['diagnosis']
+    X_train = df.iloc[:, :-1].values
+    Y_train = df['diagnosis'].values
 
     knn_model = KNeighborsClassifier(n_neighbors=3)
     knn_model.fit(X_train, Y_train)
 
-    predictiton = knn_model.predict(X_train)
+    filename = datetime.date.today().strftime("%m%d%Y")
 
-    x = datetime.datetime.now()
-
-    dump(knn_model, '../models/x')
-
-
+    dump(knn_model, f'../../models/{filename}/knn.bin')
 
