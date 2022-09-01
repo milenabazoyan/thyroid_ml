@@ -1,0 +1,13 @@
+•	Give a short explanation of bootstrapping, bagging, and boosting 
+•	What are the key parameters of the random forest algorithm? 
+•	How the final decision is taken in Random Forest applied to a classification task? 
+•	What is the imbalanced data set? 
+•	What methods to tackle imbalance do you know? What are the drawbacks of these methods? 
+•	Does Random Forest suffer overfitting? 
+•	What is the out-of-bag score in Random Forest? 
+•	How the splitting in Decision Tree is implemented? 
+•	What is a classification task? Multi-class, multi-label classification problems 
+•	What is a loss function? Name some of them and explain what are they 
+•	What are the major boosting models? 
+•	What is a regression problem? Give one-two examples of common regression algorithm and their drawbacks 
+•	What is the multi-collinearity of data? Why it is worth mentioning? 
