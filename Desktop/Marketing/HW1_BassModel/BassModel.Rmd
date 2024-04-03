@@ -1,0 +1,161 @@
+---
+title: "BassModel"
+author: "Milena Bazoyan"
+date: "2024-02-22"
+output: pdf_document
+---
+
+# An Immortal Battery
+
+The Oppo Zero-Power Tag, chosen for the innovation, addresses the challenge of powering IoT devices sustainably. It takes energy from ambient radio frequencies, eliminating the need for batteries and reducing waste. 
+
+# Look-alike innovation from the past (crystal radios)
+
+The Oppo Zero-Power Tag, with its innovative approach to energy harvesting from ambient radio frequencies for powering devices, closely mirrors the concept of crystal radios from the early 20th century. Both innovations share a fundamental principle: using the energy around us to work without needing regular power like batteries. Crystal radios were remarkable for their ability to receive radio broadcasts without an external power supply, using the energy of radio waves themselves to produce sound. 
+
+The Oppo Zero-Power Tag updates an old idea. It uses energy from radio waves around us not just to pick up signals but to power gadgets too. This shows a new way to use energy that's just floating in the air. This link between past and present technology reminds us that old ideas can help solve new problems, leading to devices that are better for the planet and work on their own.
+
+
+# Finding a time series that approximates the look-alike innovation
+
+Time series data on IoT device adoption, battery technology advancements, or wireless energy trends can indirectly reflect the impact of innovations like the Oppo Zero-Power Tag, highlighting a shift towards more sustainable and efficient energy use in technology. These trends offer insights into the evolving market dynamics and the growing importance of technologies that harness ambient energy, underscoring efforts to enhance sustainability and efficiency.
+
+
+# Estimate Bass model parameters for the look-alike innovation.
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(knitr)
+library(readxl)
+library(ggplot2)
+library(ggpubr)
+library(diffusion)
+```
+
+
+
+```{r}
+iot <- read_excel("iot-analytics_2018-2022.xlsx")
+iot
+```
+```{r}
+sm_sales = ggplot(data = iot, aes(x = year, y = sales)) +
+  geom_bar(stat = 'identity') +
+  ggtitle('IOT Analytics')
+
+sm_sales
+```
+
+```{r}
+bass.f <- function(t,p,q){
+((p+q)^2/p)*exp(-(p+q)*t)/
+(1+(q/p)*exp(-(p+q)*t))^2
+}
+
+bass.F <- function(t,p,q){
+(1-exp(-(p+q)*t))/
+(1+(q/p)*exp(-(p+q)*t))
+}
+```
+
+
+
+```{r}
+cumm_ad = ggplot(data = iot, aes(x = year, y = sales)) +
+stat_function(fun = bass.F, args = c(p=0.01, q=0.41)) +
+labs(title = 'IOT - cummulative adoptions')
+
+time_ad = ggplot(data = iot, aes(x = year, y = sales)) +
+stat_function(fun = bass.f, args = c(p=0.01, q=0.41)) +
+labs(title = 'IOT - adoptions at time t')
+
+
+suppressWarnings({ggarrange(cumm_ad, time_ad)})
+```
+
+
+# Make predictions of the diffusion
+
+```{r}
+diff_m = diffusion(iot$sales)
+p=round(diff_m$w,4)[1]
+q=round(diff_m$w,4)[2]
+m=round(diff_m$w,4)[3]
+diff_m
+```
+```{r}
+
+sales = iot$sales
+t = 1:length(sales)
+bass_m = nls(sales ~ m*(((p+q)**2/p)*exp(-(p+q)*t))/
+               (1+(q/p)*exp(-(p+q)*t))**2,
+             start=c(list(m=sum(sales),p=0.02,q=0.4)),control=nls.control(maxiter = 100, minFactor = 1/1024, printEval = TRUE, warnOnly = TRUE))
+bass_m
+```
+
+
+Lets visually see the difference between estimated and actual sales. The plot indicates that the estimation model closely predicts the actual sales, which is generally indicative of a good fit
+
+```{r}
+
+iot$pred_sales = bass.f(1:5, p = 8.196e-05, q = 2.218e-01) * 3.323e+04
+ggplot(data = iot, aes(x = year, y = sales)) +
+  geom_bar(stat = 'identity') +
+  geom_point(mapping = aes(x=year, y=pred_sales), color = 'green')
+```
+
+
+```{r}
+innovation_pred <- bass.f(1:60, p = 8.196e-05, q = 2.218e-01) * 3.323e+04
+years <- seq(from = 2018, to = 2022 + 55, by = 1)
+innovation_data <- data.frame(Year = years, Sales = innovation_pred)
+```
+
+
+```{r}
+ggplot(data = innovation_data, aes(x = Year, y = Sales)) +
+  geom_bar(stat='identity', fill = 'blue') + ylab("Sales (million $)")
+
+```
+
+The predictions are made from the year 2018 to 55 years later (until 2073). The graph shows a classic diffusion curve, starting with lower sales in the early years, then rising to a peak as the product gains popularity and the rate of adoption increases due to both innovators and imitators. After reaching the peak, the sales gradually decline as the market becomes saturated. 
+
+# Estimate the number of adopters by period
+
+
+```{r}
+p <- 8.196e-05 
+q <- 2.218e-01 
+M <- 3.323e+04  
+time_periods <- 1:60 
+adopters_by_period <- numeric(length(time_periods))
+cumulative_adopters <- 0
+
+for (t in time_periods) {
+  new_adopters <- (p + (q * cumulative_adopters / M)) * (M - cumulative_adopters)
+  adopters_by_period[t] <- new_adopters
+  cumulative_adopters <- cumulative_adopters + new_adopters
+}
+
+
+```
+
+```{r}
+percentage_of_market <- adopters_by_period / M * 100
+
+years <- seq(from = 2018, to = 2018 + length(time_periods) - 1)
+adoption_data <- data.frame(Year = years, New_Adopters = adopters_by_period, Market_Percentage = percentage_of_market)
+
+adoption_data
+
+```
+
+
+# Reference:
+
+Statista. (2023, September 7). IoT analytics: global market size 2018-2022. https://www.statista.com/statistics/830549/worldwide-iot-analytics-market-size/#statisticContainer
+
+
+
+
